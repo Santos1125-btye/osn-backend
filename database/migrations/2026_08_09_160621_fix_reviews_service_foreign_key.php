@@ -29,7 +29,7 @@ return new class extends Migration
         Schema::table('reviews', function (Blueprint $table) {
             $table->foreign('service_id')
                 ->references('id')
-                ->on('services')
+                ->on('provider_services')
                 ->cascadeOnDelete();
         });
     }

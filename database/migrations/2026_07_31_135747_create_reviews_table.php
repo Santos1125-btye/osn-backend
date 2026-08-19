@@ -8,7 +8,6 @@ return new class extends Migration {
     /**
      * Run the migrations.
      */
-    
     public function up(): void
     {
         Schema::create('reviews', function (Blueprint $table) {
@@ -28,7 +27,7 @@ return new class extends Migration {
                 ->cascadeOnDelete();
 
             $table->foreignId('service_id')
-                ->constrained()
+                ->constrained('provider_services')
                 ->cascadeOnDelete();
 
             $table->tinyInteger('rating');
