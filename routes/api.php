@@ -109,6 +109,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/provider/withdrawals',[WithdrawalController::class, 'index']);
     Route::post('/provider/withdrawals',[WithdrawalController::class, 'store']);
 
+    Route::get('/conversations/unread-count', [ConversationController::class, 'unreadCount']);
+
     Route::get('/conversations/{conversation}/messages',[MessageController::class, 'index']);
     Route::post('/messages',[MessageController::class, 'store']);
 

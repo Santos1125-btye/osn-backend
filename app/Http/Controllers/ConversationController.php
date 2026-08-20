@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Conversation;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Booking;
+use App\Models\Message;
 
 class ConversationController extends Controller
 {
@@ -212,5 +213,41 @@ class ConversationController extends Controller
                 'latestMessage.sender',
             ])
         );
+    }
+
+    /**
+     * Unread chat message count
+     */
+    public function unreadCount()
+    {
+        $user = Auth::user();
+
+        $providerId = optional($user->provider)->id;
+
+        $count = Message::whereHas('conversation', function ($query) use ($user, $providerId) {
+            $query->where(function ($q) use ($user, $providerId) {
+                // Customer conversations
+                $q->where('customer_id', $user->id);
+
+                // Provider conversations
+                if ($providerId) {
+                    $q->orWhere('provider_id', $providerId);
+                }
+            });
+        })
+            // Never count messages sent by the current user
+            ->where('sender_id', '!=', $user->id)
+
+            // Count only messages that this user has NOT read
+            ->whereDoesntHave('reads', function ($query) use ($user) {
+                $query->where('user_id', $user->id)
+                    ->whereNotNull('read_at');
+            })
+            ->count();
+
+        return response()->json([
+            'success' => true,
+            'unread_count' => $count,
+        ]);
     }
 }
