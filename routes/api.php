@@ -116,6 +116,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::patch('/messages/{message}/delivered',[MessageReadController::class, 'delivered']);
     Route::patch('/messages/{message}/read',[MessageReadController::class, 'read']);
+    Route::post('/conversations/{conversation}/read', [MessageReadController::class, 'conversationRead']);
 
     Route::get('/conversations',[ConversationController::class, 'index']);
 
