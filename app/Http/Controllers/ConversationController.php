@@ -13,40 +13,47 @@ class ConversationController extends Controller
     /**
      * My conversations
      */
-    public function index()
-    {
-        $user = Auth::user();
+public function index()
+{
+    $user = Auth::user();
 
-        $providerId = optional($user->provider)->id;
+    $providerId = optional($user->provider)->id;
 
-        $conversations = Conversation::with([
+    $conversations = Conversation::with([
+        'customer',
+        'provider.user',
+        'booking.service',
+        'latestMessage.sender',
+    ])
+        ->where(function ($query) use ($user, $providerId) {
+            $query->where('customer_id', $user->id);
 
-            'customer',
+            if ($providerId) {
+                $query->orWhere('provider_id', $providerId);
+            }
+        })
+        ->latest('last_message_at')
+        ->paginate(20);
 
-            'provider.user',
+    $conversations->getCollection()->transform(
+        function ($conversation) use ($user) {
 
-            'booking.service',
+            $conversation->unread_count = Message::where(
+                'conversation_id',
+                $conversation->id
+            )
+                ->where('sender_id', '!=', $user->id)
+                ->whereDoesntHave('reads', function ($query) use ($user) {
+                    $query->where('user_id', $user->id);
+                })
+                ->count();
 
-            'latestMessage.sender',
+            return $conversation;
+        }
+    );
 
-        ])
-            ->where(function ($query) use ($user, $providerId) {
-
-                $query->where('customer_id', $user->id);
-
-                if ($providerId) {
-                    $query->orWhere(
-                        'provider_id',
-                        $providerId
-                    );
-                }
-
-            })
-            ->latest('last_message_at')
-            ->paginate(20);
-
-        return response()->json($conversations);
-    }
+    return response()->json($conversations);
+}
 
     /**
      * Single conversation
